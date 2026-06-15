@@ -88,16 +88,16 @@ def render_accounts_list(manager: AccountManager):
 
         with st.container():
             st.markdown(f"""
-            <div class="strategy-card {'enabled' if is_active else 'disabled'}">
+            <div class="strategy-card {'enabled' if is_active else 'disabled'} glass">
                 <div class="strategy-header">
                     <div class="strategy-title">
                         <span class="strategy-name">{account.name}</span>
-                        <span class="strategy-badge {'badge-success' if is_active else 'badge-secondary'}">
+                        <span class="kpi-badge" style="background:{'linear-gradient(90deg, #10b981, #06b39a)' if is_active else 'linear-gradient(90deg, #64748b, #475569)'}>
                             {'ACTIVE' if is_active else 'INACTIVE'}
                         </span>
-                        <span style="font-size: 0.8rem;">{type_badge}</span>
+                        <span style="font-size: 0.8rem; margin-left:0.5rem">{type_badge}</span>
                     </div>
-                    <span style="color: {status_color};">{status_icon} {status_text}</span>
+                    <span style="color: {status_color}; font-weight:600">{status_icon} {status_text}</span>
                 </div>
             </div>
             """, unsafe_allow_html=True)

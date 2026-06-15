@@ -67,11 +67,11 @@ def render_active_strategies():
 
         with st.container():
             st.markdown(f"""
-            <div class="strategy-card {status_class}">
+            <div class="strategy-card {status_class} glass">
                 <div class="strategy-header">
                     <div class="strategy-title">
                         <span class="strategy-name">{strategy.get('name', 'Unknown')}</span>
-                        <span class="strategy-badge {'badge-success' if enabled else 'badge-secondary'}">{
+                        <span class="kpi-badge" style="background:{'linear-gradient(90deg, #10b981, #06b39a)' if enabled else 'linear-gradient(90deg, #64748b, #475569)'}">{
                             'Active' if enabled else 'Inactive'
                         }</span>
                     </div>
