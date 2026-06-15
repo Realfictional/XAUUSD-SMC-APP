@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  xau60-trading-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: xau60-trading-bot
+    ports:
+      - "8501:8501"
+    environment:
+      # MT5 Configuration
+      - MT5_ACCOUNT_PATH=${MT5_ACCOUNT_PATH:-C:/Program Files/MetaTrader 5}
+      - MT5_TERMINAL_PATH=${MT5_TERMINAL_PATH:-}
+
+      # Alerts & Notifications
+      - DISCORD_WEBHOOK=${DISCORD_WEBHOOK:-}
+      - TELEGRAM_TOKEN=${TELEGRAM_TOKEN:-}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID:-}
+
+      # Logging
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LOG_FILE=${LOG_FILE:-/app/logs/trading_bot.log}
+
+      # App Settings
+      - CACHE_SIZE=${CACHE_SIZE:-1000}
+      - SESSION_TIMEOUT=${SESSION_TIMEOUT:-3600}
+
+      # Security
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY:-}
+
+    volumes:
+      # Persist logs
+      - ./logs:/app/logs
+      # Persist configs
+      - ./config:/app/config
+      # MT5 Terminal path (Windows host mount)
+      - ${MT5_ACCOUNT_PATH}:C:/MetaTrader5:ro
+
+    restart: unless-stopped
+
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+
+  # Optional: Redis for caching (uncomment if needed)
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: xau60-redis
+  #   ports:
+  #     - "6379:6379"
+  #   restart: unless-stopped
+
+volumes:
+  logs:
+    driver: local
+  config:
+    driver: local
