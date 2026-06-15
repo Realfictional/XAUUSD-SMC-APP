@@ -47,9 +47,6 @@ logs/
 .coverage
 htmlcov/
 
-# Streamlit
-.streamlit/
-
 # OS
 .DS_Store
 Thumbs.db

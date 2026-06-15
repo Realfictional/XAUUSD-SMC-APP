@@ -147,9 +147,10 @@ def render_account_summary():
     try:
         # Build small sparkline from recent prices
         spark_df = None
+        _spark_symbol = "XAUUSD"
         if connector and connector.is_connected():
             try:
-                spark_df = connector.get_ohlcv(symbol or "XAUUSD", "M15", count=50)
+                spark_df = connector.get_ohlcv(_spark_symbol, "M15", count=50)
             except Exception:
                 spark_df = None
 
@@ -193,45 +194,37 @@ def render_account_summary():
         pass
 
     # Metrics row
-        if account_info:
-            # Use animated KPI cards for a richer visual
-            try:
-                from ui.components.widgets import kpi_row
+    if account_info:
+        # Use animated KPI cards for a richer visual
+        try:
+            from ui.components.widgets import kpi_row
 
-                items = [
-                    {"label": "Balance", "value": f"{account_info.balance:,.2f} {account_info.currency}", "delta": None, "color": "primary"},
-                    {"label": "Equity", "value": f"{account_info.equity:,.2f}", "delta": f"{account_info.profit:+,.2f}", "color": "success" if account_info.profit>=0 else "danger"},
-                    {"label": "Margin", "value": f"{account_info.margin:,.2f}", "color": "warning"},
-                    {"label": "Free Margin", "value": f"{account_info.free_margin:,.2f}", "color": "primary"},
-                    {"label": "Open P&L", "value": f"{account_info.profit:+,.2f}", "delta": None, "color": "success" if account_info.profit>=0 else "danger"},
-                    {"label": "Margin Level", "value": f"{account_info.margin_level:,.0f}%" if account_info.margin_level>0 else "N/A", "color": "primary"}
-                ]
-                kpi_row(items)
-            except Exception:
-                # fallback to basic metrics if widgets fail
-                col1, col2, col3, col4, col5, col6 = st.columns(6)
+            items = [
+                {"label": "Balance", "value": f"{account_info.balance:,.2f} {account_info.currency}", "delta": None, "color": "primary"},
+                {"label": "Equity", "value": f"{account_info.equity:,.2f}", "delta": f"{account_info.profit:+,.2f}", "color": "success" if account_info.profit >= 0 else "danger"},
+                {"label": "Margin", "value": f"{account_info.margin:,.2f}", "color": "warning"},
+                {"label": "Free Margin", "value": f"{account_info.free_margin:,.2f}", "color": "primary"},
+                {"label": "Open P&L", "value": f"{account_info.profit:+,.2f}", "delta": None, "color": "success" if account_info.profit >= 0 else "danger"},
+                {"label": "Margin Level", "value": f"{account_info.margin_level:,.0f}%" if account_info.margin_level > 0 else "N/A", "color": "primary"}
+            ]
+            kpi_row(items)
+        except Exception:
+            col1, col2, col3, col4, col5, col6 = st.columns(6)
+            with col1:
+                st.metric("Balance", f"{account_info.balance:,.2f} {account_info.currency}")
+            with col2:
+                st.metric("Equity", f"{account_info.equity:,.2f}", f"{account_info.profit:+,.2f}" if account_info.profit != 0 else None)
+            with col3:
+                st.metric("Margin", f"{account_info.margin:,.2f}")
+            with col4:
+                st.metric("Free Margin", f"{account_info.free_margin:,.2f}")
+            with col5:
+                st.metric("Open P&L", f"{account_info.profit:+,.2f}")
+            with col6:
+                margin_level = account_info.margin_level
+                st.metric("Margin Level", f"{margin_level:,.0f}%" if margin_level > 0 else "N/A")
 
-                with col1:
-                    st.metric("Balance", f"{account_info.balance:,.2f} {account_info.currency}")
-
-                with col2:
-                    delta = account_info.profit
-                    st.metric("Equity", f"{account_info.equity:,.2f}", f"{delta:+,.2f}" if delta != 0 else None)
-
-                with col3:
-                    st.metric("Margin", f"{account_info.margin:,.2f}")
-
-                with col4:
-                    st.metric("Free Margin", f"{account_info.free_margin:,.2f}")
-
-                with col5:
-                    st.metric("Open P&L", f"{account_info.profit:+,.2f}", delta_color="normal" if account_info.profit >= 0 else "inverse")
-
-                with col6:
-                    margin_level = account_info.margin_level
-                    st.metric("Margin Level", f"{margin_level:,.0f}%" if margin_level > 0 else "N/A")
-
-        # Daily P&L calculation - get from today's history
+        # Daily P&L
         today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
         if connector:
             try:
@@ -240,29 +233,28 @@ def render_account_summary():
                 wins = sum(1 for h in history if h.get("profit", 0) > 0)
                 total = len([h for h in history if h.get("profit", 0) != 0])
                 win_rate = (wins / total * 100) if total > 0 else 0
-
-                col_daily, col_winrate, col_refresh = st.columns([1, 1, 2])
+                col_daily, col_winrate, _ = st.columns([1, 1, 2])
                 with col_daily:
-                    st.markdown(f"**Daily P&L:** <span style='color: {'#10b981' if daily_pnl >= 0 else '#ef4444'};'>{daily_pnl:+,.2f}</span>", unsafe_allow_html=True)
+                    color = '#10b981' if daily_pnl >= 0 else '#ef4444'
+                    st.markdown(f"**Daily P&L:** <span style='color:{color}'>{daily_pnl:+,.2f}</span>", unsafe_allow_html=True)
                 with col_winrate:
                     st.markdown(f"**Win Rate Today:** {win_rate:.1f}% ({wins}/{total})")
             except Exception:
                 pass
     else:
-        # Mock data for disconnected state
         col1, col2, col3, col4, col5, col6 = st.columns(6)
         with col1:
-            st.metric("Balance", "-- --")
+            st.metric("Balance", "--")
         with col2:
-            st.metric("Equity", "-- --")
+            st.metric("Equity", "--")
         with col3:
-            st.metric("Margin", "-- --")
+            st.metric("Margin", "--")
         with col4:
-            st.metric("Free Margin", "-- --")
+            st.metric("Free Margin", "--")
         with col5:
-            st.metric("Open P&L", "-- --")
+            st.metric("Open P&L", "--")
         with col6:
-            st.metric("Margin Level", "-- --")
+            st.metric("Margin Level", "--")
 
 
 def render_chart_panel():
@@ -698,7 +690,7 @@ def render_trade_panel():
             tp_type=tp_type,
             tp_value=tp_value,
             comment=comment,
-            entry_price=entry_price if order_type != "Market" else None
+            entry_price=locals().get("entry_price") if order_type != "Market" else None
         )
 
     st.markdown("---")

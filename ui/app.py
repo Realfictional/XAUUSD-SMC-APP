@@ -618,29 +618,30 @@ def main():
             unsafe_allow_html=True,
         )
 
-    st.markdown(
-        """
-        <div style="padding:2rem 0; text-align:center;">
-            <h2 style="margin:0; color:var(--text-primary);">Welcome to MT5 Trading Bot</h2>
-            <p style="color:var(--text-secondary);">Use the Pages menu (top-left) to navigate between Dashboard, Strategies, Backtest, Accounts and Settings. These pages are handled by Streamlit Pages.</p>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    # Show quick links as cards
-    cols = st.columns([1, 1, 1, 1, 1])
-    labels = ["Dashboard", "Strategies", "Strategy Builder", "Backtest", "Accounts"]
-    icons = ["📊", "🧠", "🛠️", "📈", "👤"]
-
-    for c, lbl, ic in zip(cols, labels, icons):
-        with c:
-            st.markdown(f"""
-            <div class="card" style="text-align:center;">
-                <div style="font-size:1.5rem">{ic}</div>
-                <div style="margin-top:0.5rem; font-weight:700">{lbl}</div>
-            </div>
-            """, unsafe_allow_html=True)
+    # Route to the selected page
+    try:
+        if page == "Dashboard":
+            from ui.pages.dashboard import render_dashboard
+            render_dashboard()
+        elif page == "Strategies":
+            from ui.pages.strategies import render_strategies
+            render_strategies()
+        elif page == "Strategy Builder":
+            from ui.pages.strategy_builder import render_strategy_builder
+            render_strategy_builder()
+        elif page == "Backtest":
+            from ui.pages.backtest import render_backtest
+            render_backtest()
+        elif page == "Accounts":
+            from ui.pages.accounts import render_accounts
+            render_accounts()
+        elif page == "Settings":
+            from ui.pages.settings import render_settings
+            render_settings()
+    except Exception as e:
+        st.error(f"Error loading page: {e}")
+        import traceback
+        st.code(traceback.format_exc())
 
 
 if __name__ == "__main__":
