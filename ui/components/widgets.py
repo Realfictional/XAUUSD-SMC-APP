@@ -23,6 +23,54 @@ def metric_card(
     st.metric(label=label, value=value, delta=delta, delta_color=delta_color)
 
 
+def animated_metric(label: str, value: str, delta: Optional[str] = None, color: str = "primary"):
+        """
+        Render an animated KPI card using the global CSS classes.
+
+        Args:
+                label: Metric label
+                value: Metric value (string)
+                delta: Optional small delta string
+                color: visual color hint (primary/success/warning/danger)
+        """
+        # color mapping to inline styles if needed
+        color_map = {
+                "primary": "linear-gradient(90deg, var(--primary), var(--primary-dark))",
+                "success": "linear-gradient(90deg, #10b981, #06b39a)",
+                "warning": "linear-gradient(90deg, #f59e0b, #f97316)",
+                "danger": "linear-gradient(90deg, #ef4444, #f43f5e)"
+        }
+
+        bg = color_map.get(color, color_map["primary"])
+
+        delta_html = f"<div style='font-size:0.85rem; color:var(--text-secondary); margin-top:4px'>{delta}</div>" if delta else ""
+
+        st.markdown(f"""
+        <div class="card glass" style="text-align:left; padding:0.75rem 1rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:0.5rem">
+                <div style="flex:1">
+                    <div style="font-size:0.85rem; color:var(--text-secondary);">{label}</div>
+                    <div style="font-size:1.25rem; font-weight:800; color:var(--text-primary);">{value}</div>
+                    {delta_html}
+                </div>
+                <div style="margin-left:0.5rem">
+                    <div class="kpi-badge" style="background:{bg}">{''}</div>
+                </div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+
+def kpi_row(items: list):
+        """Render a row of KPI items. Each item: dict with keys label,value,delta,color."""
+        if not items:
+                return
+        cols = st.columns(len(items))
+        for c, it in zip(cols, items):
+                with c:
+                        animated_metric(it.get("label", ""), it.get("value", "--"), it.get("delta"), it.get("color", "primary"))
+
+
 def status_badge(status: str, labels: Dict[str, str] = None):
     """
     Display a status badge.

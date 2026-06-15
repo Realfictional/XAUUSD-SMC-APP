@@ -193,48 +193,43 @@ def render_account_summary():
         pass
 
     # Metrics row
-    if account_info:
-        col1, col2, col3, col4, col5, col6 = st.columns(6)
+        if account_info:
+            # Use animated KPI cards for a richer visual
+            try:
+                from ui.components.widgets import kpi_row
 
-        with col1:
-            st.metric(
-                "Balance",
-                f"{account_info.balance:,.2f} {account_info.currency}"
-            )
+                items = [
+                    {"label": "Balance", "value": f"{account_info.balance:,.2f} {account_info.currency}", "delta": None, "color": "primary"},
+                    {"label": "Equity", "value": f"{account_info.equity:,.2f}", "delta": f"{account_info.profit:+,.2f}", "color": "success" if account_info.profit>=0 else "danger"},
+                    {"label": "Margin", "value": f"{account_info.margin:,.2f}", "color": "warning"},
+                    {"label": "Free Margin", "value": f"{account_info.free_margin:,.2f}", "color": "primary"},
+                    {"label": "Open P&L", "value": f"{account_info.profit:+,.2f}", "delta": None, "color": "success" if account_info.profit>=0 else "danger"},
+                    {"label": "Margin Level", "value": f"{account_info.margin_level:,.0f}%" if account_info.margin_level>0 else "N/A", "color": "primary"}
+                ]
+                kpi_row(items)
+            except Exception:
+                # fallback to basic metrics if widgets fail
+                col1, col2, col3, col4, col5, col6 = st.columns(6)
 
-        with col2:
-            delta = account_info.profit
-            st.metric(
-                "Equity",
-                f"{account_info.equity:,.2f}",
-                f"{delta:+,.2f}" if delta != 0 else None
-            )
+                with col1:
+                    st.metric("Balance", f"{account_info.balance:,.2f} {account_info.currency}")
 
-        with col3:
-            st.metric(
-                "Margin",
-                f"{account_info.margin:,.2f}"
-            )
+                with col2:
+                    delta = account_info.profit
+                    st.metric("Equity", f"{account_info.equity:,.2f}", f"{delta:+,.2f}" if delta != 0 else None)
 
-        with col4:
-            st.metric(
-                "Free Margin",
-                f"{account_info.free_margin:,.2f}"
-            )
+                with col3:
+                    st.metric("Margin", f"{account_info.margin:,.2f}")
 
-        with col5:
-            st.metric(
-                "Open P&L",
-                f"{account_info.profit:+,.2f}",
-                delta_color="normal" if account_info.profit >= 0 else "inverse"
-            )
+                with col4:
+                    st.metric("Free Margin", f"{account_info.free_margin:,.2f}")
 
-        with col6:
-            margin_level = account_info.margin_level
-            st.metric(
-                "Margin Level",
-                f"{margin_level:,.0f}%" if margin_level > 0 else "N/A"
-            )
+                with col5:
+                    st.metric("Open P&L", f"{account_info.profit:+,.2f}", delta_color="normal" if account_info.profit >= 0 else "inverse")
+
+                with col6:
+                    margin_level = account_info.margin_level
+                    st.metric("Margin Level", f"{margin_level:,.0f}%" if margin_level > 0 else "N/A")
 
         # Daily P&L calculation - get from today's history
         today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
